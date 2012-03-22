@@ -1,32 +1,36 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
-character_encoding = 'windows-1251'
-import sys, csv, xlrd
+import sys
+import csv
+import xlrd
 from optparse import OptionParser
+
 
 def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="--------"):
     writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter)
 
-    # parse spreadsheet
     book = xlrd.open_workbook(infilepath)
 
     if sheetid > 0:
-        sheet = book.sheet_by_index(sheetid)
-        if not sheet:
-            raise Exception("Sheet %i Not Found" %sheetid)
-        sheet_to_csv(writer);
+        # xlrd has zero-based sheet enumeration, but 0 means "convert all"
+        sheet_to_csv(book, sheetid - 1, writer)
     else:
         for sheetid in xrange(book.nsheets):
-            sheet_to_csv(book, sheetid, writer);
-            if sheetdelimiter != "" and sheetid < book.nsheets:
+            sheet_to_csv(book, sheetid, writer)
+            if sheetdelimiter and sheetid < book.nsheets - 1:
                 outfile.write(sheetdelimiter + "\r\n")
+
 
 def sheet_to_csv(book, sheetid, writer):
 
     sheet = book.sheet_by_index(sheetid)
 
+    if not sheet:
+        raise Exception("Sheet %i Not Found" % sheetid)
+
     for i in xrange(sheet.nrows):
-        row = []
+        row = [""] * sheet.ncols
         ctys = sheet.row_types(i)
         cvals = sheet.row_values(i)
         for j in xrange(sheet.ncols):
@@ -42,12 +46,12 @@ def sheet_to_csv(book, sheetid, writer):
             elif cty == xlrd.XL_CELL_ERROR:
                 row[j] = xlrd.error_text_from_code.get(cval, '<unknown error="" code="" 0x%02x="">' % cval)
             else:
-                row[j] = cval
-        writer.writerow(row);
+                row[j] = ('%s' % cval).encode('utf-8')
+        writer.writerow(row)
 
 
 if __name__ == "__main__":
-    parser = OptionParser(usage = "%prog [options] infile [outfile]", version="0.1")
+    parser = OptionParser(usage="%prog [options] infile [outfile]", version="0.1")
     parser.add_option("-s", "--sheet", dest="sheetid", default=1, type="int",
       help="sheet no to convert (0 for all sheets)")
     parser.add_option("-d", "--delimiter", dest="delimiter", default=",",
@@ -69,9 +73,9 @@ if __name__ == "__main__":
         raise Exception("Invalid delimiter")
 
     kwargs = {
-      'sheetid' : options.sheetid,
-      'delimiter' : delimiter,
-      'sheetdelimiter' : options.sheetdelimiter,
+      'sheetid': options.sheetid,
+      'delimiter': delimiter,
+      'sheetdelimiter': options.sheetdelimiter,
     }
 
     if len(args) < 1:
