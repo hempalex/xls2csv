@@ -36,17 +36,22 @@ def sheet_to_csv(book, sheetid, writer):
         for j in xrange(sheet.ncols):
             cty = ctys[j]
             cval = cvals[j]
-            if cty == xlrd.XL_CELL_DATE:
+            if cty == xlrd.XL_CELL_NUMBER:
+                cval = "%g" % cval
+            elif cty == xlrd.XL_CELL_TEXT:
+                cval = cval.encode('utf-8')
+            elif cty == xlrd.XL_CELL_DATE:
                 try:
-                    row[j] = xlrd.xldate_as_tuple(cval, book.datemode)
+                    cval = xlrd.xldate_as_tuple(cval, book.datemode)
                 except xlrd.XLDateError:
                     e1, e2 = sys.exc_info()[:2]
-                    row[j] = "%s:%s" % (e1.__name__, e2)
+                    cval = "%s:%s" % (e1.__name__, e2)
                     cty = xlrd.XL_CELL_ERROR
             elif cty == xlrd.XL_CELL_ERROR:
-                row[j] = xlrd.error_text_from_code.get(cval, '<unknown error="" code="" 0x%02x="">' % cval)
-            else:
-                row[j] = ('%s' % cval).encode('utf-8')
+                cval = xlrd.error_text_from_code.get(cval, '<unknown error="" code="" 0x%02x="">' % cval)
+
+            row[j] = cval
+
         writer.writerow(row)
 
 
