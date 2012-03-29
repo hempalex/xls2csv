@@ -37,7 +37,11 @@ def sheet_to_csv(book, sheetid, writer):
             cty = ctys[j]
             cval = cvals[j]
             if cty == xlrd.XL_CELL_NUMBER:
-                cval = "%g" % cval
+                ival = int(cval)
+                if cval == ival:
+                    cval = ival
+                else:
+                    cval = "%g0.5" % cval
             elif cty == xlrd.XL_CELL_TEXT:
                 cval = cval.encode('utf-8')
             elif cty == xlrd.XL_CELL_DATE:
