@@ -7,10 +7,10 @@ import xlrd
 from optparse import OptionParser
 
 
-def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="--------"):
+def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="--------", encoding="cp1251"):
     writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter)
 
-    book = xlrd.open_workbook(infilepath)
+    book = xlrd.open_workbook(infilepath, encoding_override=encoding)
 
     if sheetid > 0:
         # xlrd has zero-based sheet enumeration, but 0 means "convert all"
@@ -67,6 +67,8 @@ if __name__ == "__main__":
       help="delimiter - csv columns delimiter, 'tab' or 'x09' for tab (comma is default)")
     parser.add_option("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
       help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
+    parser.add_option("-e", "--encoding", dest="encoding", default="",
+      help="xls file encoding if the CODEPAGE record is missing")
 
     (options, args) = parser.parse_args()
 
@@ -85,6 +87,7 @@ if __name__ == "__main__":
       'sheetid': options.sheetid,
       'delimiter': delimiter,
       'sheetdelimiter': options.sheetdelimiter,
+      'encoding': options.encoding,
     }
 
     if len(args) < 1:
