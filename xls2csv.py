@@ -41,7 +41,7 @@ def sheet_to_csv(book, sheetid, writer):
                 if cval == ival:
                     cval = ival
                 else:
-                    cval = "%g0.5" % cval
+                    cval = "%s" % cval
             elif cty == xlrd.XL_CELL_TEXT:
                 cval = cval.encode('utf-8')
             elif cty == xlrd.XL_CELL_DATE:
@@ -67,7 +67,7 @@ if __name__ == "__main__":
       help="delimiter - csv columns delimiter, 'tab' or 'x09' for tab (comma is default)")
     parser.add_option("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------",
       help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
-    parser.add_option("-e", "--encoding", dest="encoding", default="",
+    parser.add_option("-e", "--encoding", dest="encoding", default="cp1251",
       help="xls file encoding if the CODEPAGE record is missing")
 
     (options, args) = parser.parse_args()
