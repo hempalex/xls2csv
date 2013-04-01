@@ -8,7 +8,7 @@ from optparse import OptionParser
 
 
 def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="--------", encoding="cp1251"):
-    writer = csv.writer(outfile, quoting=csv.QUOTE_MINIMAL, delimiter=delimiter)
+    writer = csv.writer(outfile, dialect='excel', quoting=csv.QUOTE_ALL, delimiter=delimiter)
 
     book = xlrd.open_workbook(infilepath, encoding_override=encoding)
 
