@@ -6,23 +6,27 @@ import csv
 import xlrd
 from optparse import OptionParser
 
-
 def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="--------", encoding="cp1251"):
     writer = csv.writer(outfile, dialect='excel', quoting=csv.QUOTE_ALL, delimiter=delimiter)
 
     book = xlrd.open_workbook(infilepath, encoding_override=encoding, formatting_info=True)
 
+    formats = {}
+    for i, f in book.format_map.iteritems():
+        if f.format_str != None:
+            formats[i] = extract_number_format(f.format_str)
+
     if sheetid > 0:
         # xlrd has zero-based sheet enumeration, but 0 means "convert all"
-        sheet_to_csv(book, sheetid - 1, writer)
+        sheet_to_csv(book, sheetid - 1, writer, formats)
     else:
         for sheetid in xrange(book.nsheets):
-            sheet_to_csv(book, sheetid, writer)
+            sheet_to_csv(book, sheetid, writer, formats)
             if sheetdelimiter and sheetid < book.nsheets - 1:
                 outfile.write(sheetdelimiter + "\r\n")
 
 
-def sheet_to_csv(book, sheetid, writer):
+def sheet_to_csv(book, sheetid, writer, formats):
 
     sheet = book.sheet_by_index(sheetid)
 
@@ -42,7 +46,8 @@ def sheet_to_csv(book, sheetid, writer):
             elif cell.ctype == xlrd.XL_CELL_NUMBER:
 
                 if cell.xf_index != None:
-                    a_fmt = extract_number_format(book.format_map[book.xf_list[cell.xf_index].format_key].format_str)
+
+                    a_fmt = formats[book.xf_list[cell.xf_index].format_key]
                     if a_fmt:
                         cval = format_number(cell.value, a_fmt, "", ".")
                     elif cell.value == int(cell.value):
@@ -77,7 +82,8 @@ def extract_number_format(s_fmt):
     # If don't know what does the format "Standard/GENERAL" mean.
     # As far as I understand, the presentation can differ depending
     # on the locale and user settings. Here is a my proposal.
-    if 'GENERAL' == s_fmt:
+
+    if None == s_fmt or 'GENERAL' == s_fmt:
         return (None, '#', '#')
 
     # Find the number-part
