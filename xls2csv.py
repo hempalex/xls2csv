@@ -62,7 +62,7 @@ def sheet_to_csv(book, sheetid, writer, formats):
                     e1, e2 = sys.exc_info()[:2]
                     cval = "%s:%s" % (e1.__name__, e2)
 
-            else:  # XL_CELL_ERROR, XL_CELL_ERROR, XL_CELL_BLANK
+            else:  # XL_CELL_EMPTY, XL_CELL_ERROR, XL_CELL_BLANK
                 cval = ""
 
             row[j] = cval
