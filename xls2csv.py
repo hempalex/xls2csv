@@ -36,7 +36,9 @@ def sheet_to_csv(book, sheetid, writer, formats):
     for i in range(sheet.nrows):
         row = [""] * sheet.ncols
         cells = sheet.row(i)
-        for j in range(sheet.ncols):
+
+        row_len = sh.row_len(i)
+        for j in range(row_len):
 
             cell = cells[j]
 
