@@ -6,13 +6,13 @@ import csv
 import xlrd
 from optparse import OptionParser
 
-def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="--------", encoding="cp1251"):
+def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="--------", encoding="utf-8"):
     writer = csv.writer(outfile, dialect='excel', quoting=csv.QUOTE_ALL, delimiter=delimiter)
 
     book = xlrd.open_workbook(infilepath, encoding_override=encoding, formatting_info=True)
 
     formats = {}
-    for i, f in book.format_map.iteritems():
+    for i, f in book.format_map.items():
         if f.format_str != None:
             formats[i] = extract_number_format(f.format_str)
 
@@ -20,7 +20,7 @@ def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="-----
         # xlrd has zero-based sheet enumeration, but 0 means "convert all"
         sheet_to_csv(book, sheetid - 1, writer, formats)
     else:
-        for sheetid in xrange(book.nsheets):
+        for sheetid in range(book.nsheets):
             sheet_to_csv(book, sheetid, writer, formats)
             if sheetdelimiter and sheetid < book.nsheets - 1:
                 outfile.write(sheetdelimiter + "\r\n")
@@ -33,15 +33,15 @@ def sheet_to_csv(book, sheetid, writer, formats):
     if not sheet:
         raise Exception("Sheet %i Not Found" % sheetid)
 
-    for i in xrange(sheet.nrows):
+    for i in range(sheet.nrows):
         row = [""] * sheet.ncols
         cells = sheet.row(i)
-        for j in xrange(sheet.ncols):
+        for j in range(sheet.ncols):
 
             cell = cells[j]
 
             if cell.ctype == xlrd.XL_CELL_TEXT:
-                cval = cell.value.encode('utf-8')
+                cval = cell.value
 
             elif cell.ctype == xlrd.XL_CELL_NUMBER:
 
@@ -53,7 +53,7 @@ def sheet_to_csv(book, sheetid, writer, formats):
                     elif cell.value == int(cell.value):
                         cval = int(cell.value)
                     else:
-                        cval = "%s" % cell.value
+                        cval = str(cell.value)
 
             elif cell.ctype == xlrd.XL_CELL_DATE:
                 try:
@@ -198,7 +198,7 @@ if __name__ == "__main__":
     parser.add_option("-s", "--sheet", dest="sheetid", default=1, type="int", help="sheet no to convert (0 for all sheets)")
     parser.add_option("-d", "--delimiter", dest="delimiter", default=",", help="delimiter - csv columns delimiter, 'tab' or 'x09' for tab (comma is default)")
     parser.add_option("-p", "--sheetdelimiter", dest="sheetdelimiter", default="--------", help="sheets delimiter used to separate sheets, pass '' if you don't want delimiters (default '--------')")
-    parser.add_option("-e", "--encoding", dest="encoding", default="cp1251", help="xls file encoding if the CODEPAGE record is missing")
+    parser.add_option("-e", "--encoding", dest="encoding", default="utf-8", help="xls file encoding if the CODEPAGE record is missing")
 
     (options, args) = parser.parse_args()
 
@@ -224,7 +224,15 @@ if __name__ == "__main__":
         parser.print_help()
     else:
         if len(args) > 1:
-            outfile = open(args[1], 'w+')
+            if sys.version_info[0] == 2:
+                outfile = open(args[1], 'wb+')
+            elif sys.version_info[0] == 3:
+                outfile = open(args[1], 'w+', encoding="utf-8", newline="")
+            else:
+                sys.stderr.write("error: version of your python is not supported: " + str(sys.version_info) + "\n")
+                sys.exit(1)
+
+
             xls2csv(args[0], outfile, **kwargs)
             outfile.close()
         else:
