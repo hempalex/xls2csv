@@ -9,7 +9,7 @@ from optparse import OptionParser
 def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="--------", encoding="utf-8"):
     writer = csv.writer(outfile, dialect='excel', quoting=csv.QUOTE_ALL, delimiter=delimiter)
 
-    book = xlrd.open_workbook(infilepath, encoding_override=encoding, formatting_info=True)
+    book = xlrd.open_workbook(infilepath, encoding_override=encoding)
 
     formats = {}
     for i, f in book.format_map.items():
