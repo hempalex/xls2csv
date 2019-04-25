@@ -9,7 +9,7 @@ from optparse import OptionParser
 def xls2csv(infilepath, outfile, sheetid=1, delimiter=",", sheetdelimiter="--------", encoding="utf-8"):
     writer = csv.writer(outfile, dialect='excel', quoting=csv.QUOTE_ALL, delimiter=delimiter)
 
-    book = xlrd.open_workbook(infilepath, encoding_override=encoding)
+    book = xlrd.open_workbook(infilepath, encoding_override=encoding, formatting_info=True)
 
     formats = {}
     for i, f in book.format_map.items():
@@ -34,11 +34,9 @@ def sheet_to_csv(book, sheetid, writer, formats):
         raise Exception("Sheet %i Not Found" % sheetid)
 
     for i in range(sheet.nrows):
-        row = [""] * sheet.ncols
+        row = []
         cells = sheet.row(i)
-
-        row_len = sh.row_len(i)
-        for j in range(row_len):
+        for j in range(sheet.ncols):
 
             cell = cells[j]
 
@@ -67,7 +65,7 @@ def sheet_to_csv(book, sheetid, writer, formats):
             else:  # XL_CELL_EMPTY, XL_CELL_ERROR, XL_CELL_BLANK
                 cval = ""
 
-            row[j] = cval
+            row.append(cval)
 
         writer.writerow(row)
 
